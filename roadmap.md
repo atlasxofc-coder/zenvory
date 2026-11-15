@@ -1,0 +1,13 @@
+# ZENVORI roadmap
+- [ ] Fix all build typing errors and verify the preview opens (current request)
+- [ ] Enable Lovable Cloud (no Shopify — user rejected it)
+- [ ] Design system (white, #171717, orange #FF6819, green #16A34A)
+- [ ] Database: categories, products, variants, stock, profiles, roles, addresses, orders, order items, shipments, tracking events
+- [ ] Home, catalog, search, filters, product page
+- [ ] Cart + checkout (CEP shipping, payment structure Pix/crédito/débito, no simulated payments)
+- [ ] Auth + customer area (orders, details, addresses)
+- [ ] Tracking page (5 steps, Shopee-like history, no invented events)
+- [ ] Admin panel (products, stock, orders, status, tracking code, reports)
+- [ ] Brazilian payment provider integration — blocked: needs provider choice/credentials
+- [ ] Carrier integration — blocked: future
+- [ ] Official logo — blocked: waiting for user files
