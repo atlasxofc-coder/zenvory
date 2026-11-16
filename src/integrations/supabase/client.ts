@@ -4,23 +4,29 @@ import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+  return (
+    value.startsWith('sb_publishable_') ||
+    value.startsWith('sb_secret_')
+  );
 }
 
 function serverSupabaseUrl(
   publicUrl: string,
   supabaseKey: string
 ): string | undefined {
-  if (typeof window !== 'undefined' || typeof process === 'undefined') {
+  if (
+    typeof window !== 'undefined' ||
+    typeof process === 'undefined'
+  ) {
     return undefined;
   }
 
-  const serverUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '');
+  const serverUrl = process.env['SUPABASE_URL']?.replace(/\/+$/, '');
 
   if (
     !serverUrl ||
     serverUrl === publicUrl ||
-    process.env.SUPABASE_PUBLISHABLE_KEY !== supabaseKey
+    process.env['SUPABASE_PUBLISHABLE_KEY'] !== supabaseKey
   ) {
     return undefined;
   }
@@ -83,23 +89,30 @@ function createSupabaseFetch(
 
 function createSupabaseClient() {
   const serverEnv =
-    typeof process !== 'undefined' ? process.env : undefined;
+    typeof process !== 'undefined'
+      ? process.env
+      : undefined;
 
-  const SUPABASE_URL =
-    import.meta.env.VITE_SUPABASE_URL ||
-    serverEnv?.SUPABASE_URL;
+  const supabaseUrl =
+    import.meta.env['VITE_SUPABASE_URL'] ||
+    serverEnv?.['SUPABASE_URL'] ||
+    '';
 
-  const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    serverEnv?.SUPABASE_PUBLISHABLE_KEY;
+  const supabasePublishableKey =
+    import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    serverEnv?.['SUPABASE_PUBLISHABLE_KEY'] ||
+    '';
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ['VITE_SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY
-        ? ['VITE_SUPABASE_PUBLISHABLE_KEY']
-        : []),
-    ];
+  if (!supabaseUrl || !supabasePublishableKey) {
+    const missing: string[] = [];
+
+    if (!supabaseUrl) {
+      missing.push('VITE_SUPABASE_URL');
+    }
+
+    if (!supabasePublishableKey) {
+      missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
+    }
 
     throw new Error(
       `Missing Supabase environment variable(s): ${missing.join(', ')}`
@@ -107,13 +120,13 @@ function createSupabaseClient() {
   }
 
   return createClient<Database>(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY,
+    supabaseUrl,
+    supabasePublishableKey,
     {
       global: {
         fetch: createSupabaseFetch(
-          SUPABASE_URL,
-          SUPABASE_PUBLISHABLE_KEY
+          supabaseUrl,
+          supabasePublishableKey
         ),
       },
       auth: {
@@ -125,17 +138,23 @@ function createSupabaseClient() {
   );
 }
 
-let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
+let supabaseInstance:
+  | ReturnType<typeof createSupabaseClient>
+  | undefined;
 
 export const supabase = new Proxy(
   {} as ReturnType<typeof createSupabaseClient>,
   {
-    get(_, prop, receiver) {
-      if (!_supabase) {
-        _supabase = createSupabaseClient();
+    get(_target, property, receiver) {
+      if (!supabaseInstance) {
+        supabaseInstance = createSupabaseClient();
       }
 
-      return Reflect.get(_supabase, prop, receiver);
+      return Reflect.get(
+        supabaseInstance,
+        property,
+        receiver
+      );
     },
   }
 );
